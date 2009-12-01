@@ -10,6 +10,9 @@ my $builder = Module::Build->new(
     build_requires => {
         'Test::More' => 0,
     },
+    requires => {
+        'Readonly' => 0,
+    },
     add_to_cleanup      => [ 'Solaris-SMF-*' ],
     create_makefile_pl => 'traditional',
 );
