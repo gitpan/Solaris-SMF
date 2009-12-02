@@ -12,4 +12,4 @@ diag( "Testing Solaris::SMF $Solaris::SMF::VERSION, Perl $], $^X" );
 $ENV{PATH}='/bin:/usr/bin:/sbin:/usr/sbin';
 my ($OS, $release) = split(/ /, `uname -sr`);
 ok($OS eq 'SunOS', 'No point installing on non-Solaris operating system.');
-ok($release gt '9', 'Solaris 10 or above is required.');
+ok($release =~ m/ 5\.(?:9|1[0-9]) /xms, 'Solaris 9, 10 or above is required.');

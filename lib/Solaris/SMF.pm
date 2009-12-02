@@ -1,15 +1,20 @@
 package Solaris::SMF;
 
+BEGIN {
+    eval {
+        require Data::Dumper;
+    }
+};
 use warnings;
 use strict;
 require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw( get_services );
-use Readonly;
 use Params::Validate qw ( validate :types );
 use Solaris::SMF::Service;
+use Carp;
 
-my $debug = $ENV{RELEASE_TESTING}?$ENV{RELEASE_TESTING}:0;
+my $debug = $ENV{RELEASE_TESTING} ? $ENV{RELEASE_TESTING} : 0;
 
 =head1 NAME
 
@@ -17,11 +22,11 @@ Solaris::SMF - Manipulate Solaris 10 services from Perl
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -52,18 +57,16 @@ Returns a list of Solaris::SMF::Service objects.
 
 =cut
 
-
 sub get_services {
-    $debug && carp('get_services ' . join(',', @_));
-    my %p
-        = validate( @_, { wildcard => { type => SCALAR, default => '*' } } );
+    $debug && warn( 'get_services ' . join( ',', @_ ) );
+    my %p = validate( @_, { wildcard => { type => SCALAR, default => '*' } } );
     local $ENV{PATH} = '/bin:/usr/bin:/sbin:/usr/sbin';
-    Readonly my $svcs => '/usr/bin/svcs';
     my @service_list;
-    open my $svc_list, '-|', " $svcs -aH '$p{wildcard}' 2>/dev/null"
-        or die 'Unable to query SMF services';
+    open my $svc_list, '-|', " svcs -aH '$p{wildcard}' 2>/dev/null"
+      or die 'Unable to query SMF services';
     while ( my $svc_line = <$svc_list> ) {
-        $debug && carp(Data::Dumper->Dump([$svc_line], [qw($svc_line)]));
+        $debug
+          && warn($svc_line);
         my ( $state, $date, $FMRI ) = (
             $svc_line =~ m/ 
 		^ 
@@ -76,7 +79,13 @@ sub get_services {
 		$ 
 	/xms
         );
-        $debug && carp(Data::Dumper->Dump([$state, $date, $FMRI], [qw($state $date $FMRI)]));
+        $debug && 
+            warn(
+                Data::Dumper->Dump(
+                    [ $state, $date, $FMRI ],
+                    [qw($state $date $FMRI)]
+                )
+            );
         if ($FMRI) {
             push( @service_list, Solaris::SMF::Service->new($FMRI) );
         }

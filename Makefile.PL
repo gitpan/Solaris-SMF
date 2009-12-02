@@ -9,7 +9,7 @@ WriteMakefile
           'VERSION_FROM' => 'lib/Solaris/SMF.pm',
           'PREREQ_PM' => {
                            'Test::More' => 0,
-                           'Readonly' => 0
+                           'Params::Validate' => 0
                          }
         )
 ;

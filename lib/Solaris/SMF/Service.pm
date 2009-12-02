@@ -1,12 +1,16 @@
 package Solaris::SMF::Service;
+BEGIN {
+    eval {
+            require Data::Dumper;
+                }
+                };
 
 use warnings;
 use strict;
-use Readonly;
 use Params::Validate qw( validate validate_pos :types );
 use Carp;
 
-my $debug = $ENV{RELEASE_TESTING}?$ENV{RELEASE_TESTING}:0;
+my $debug = $ENV{RELEASE_TESTING} ? $ENV{RELEASE_TESTING} : 0;
 
 =head1 NAME
 
@@ -39,13 +43,13 @@ been started, rather than at a fixed point in the boot process.
 =cut
 
 sub _svcs {
-    $debug && carp('_svcs ' . join(',', @_));
     my $self = shift;
     local $ENV{PATH} = '/bin:/usr/bin:/sbin:/usr/sbin';
-    Readonly my $svcs    => '/usr/bin/svcs';
-    open my $svc_list, '-|', " $svcs -aH '$self->{FMRI}' 2>/dev/null" or croak 'Unable to query SMF services';
+    open my $svc_list, '-|', " svcs -aH '$self->{FMRI}' 2>/dev/null"
+      or croak 'Unable to query SMF services';
     while ( my $svc_line = <$svc_list> ) {
-        my ($state, $date, $FMRI) = ($svc_line =~ m/ 
+        my ( $state, $date, $FMRI ) = (
+            $svc_line =~ m/ 
                 ^ 
                 ([^\s]+)        # Current state
                 [\s]+
@@ -54,9 +58,10 @@ sub _svcs {
                 ( (?: svc: | lrc: ) [^\s]+ ) # FMRI
                 \n?
                 $ 
-        /xms);
+        /xms
+        );
         if ($FMRI) {
-    	    close $svc_list;
+            close $svc_list;
             return ( $state, $date );
         }
     }
@@ -64,15 +69,15 @@ sub _svcs {
 }
 
 sub _svcprop {
-    $debug && carp('_svcprop ' . join(',', @_));
+    $debug && warn( '_svcprop ' . join( ',', @_ ) );
     my $self = shift;
     local $ENV{PATH} = '/bin:/usr/bin:/sbin:/usr/sbin';
-    Readonly my $svcprop => '/usr/bin/svcprop';
-    open my $svcprop_list, '-|', " $svcprop '$self->{FMRI}' 2>/dev/null" or
-        croak 'Unable to query SMF service properties';
+    open my $svcprop_list, '-|', " svcprop '$self->{FMRI}' 2>/dev/null"
+      or croak 'Unable to query SMF service properties';
     my %properties;
     while ( my $svcprop_line = <$svcprop_list> ) {
-        my ($name, $type, $value) = ($svcprop_line =~ m/
+        my ( $name, $type, $value ) = (
+            $svcprop_line =~ m/
                 ^
                 ([^\s]+)        # Property name
                 [\s]+
@@ -80,35 +85,39 @@ sub _svcprop {
                 [\s]+
                 ([^\s]*[^\n]*)        # Value of property
                 $
-        /xms);
+        /xms
+        );
         if ($name) {
-            $properties{$name}{type} = $type;
+            $properties{$name}{type}  = $type;
             $properties{$name}{value} = $value;
         }
+    $debug && print STDERR Data::Dumper->Dump( [$name, $type, $value], [qw($name $type $value)] );
     }
-    $debug && carp(Data::Dumper->Dump([%properties], [qw(%properties)]));
+    $debug && print STDERR Data::Dumper->Dump( [\%properties], [qw(%properties)] );
     return \%properties;
 }
 
 sub _svcadm {
-    $debug && carp('_svcadm ' . join(',', @_));
+    $debug && warn( '_svcadm ' . join( ',', @_ ) );
     my $self = shift;
     local $ENV{PATH} = '/bin:/usr/bin:/sbin:/usr/sbin';
-    Readonly my $svcadm  => '/usr/sbin/svcadm';
-    open my $svc_list, '-|', " $svcadm '$self->{FMRI}' 2>/dev/null" or croak 'Unable to query SMF services';
+    open my $svc_list, '-|', " svcadm '$self->{FMRI}' 2>/dev/null"
+      or croak 'Unable to query SMF services';
     while ( my $svc_line = <$svc_list> ) {
-        my ($state, $date, $FMRI) = ($svc_line =~ m/
+        my ( $state, $date, $FMRI ) = (
+            $svc_line =~ m/
                 ^
                 ([^\s]+)        # Current state
                 [\s]+
                 ([^\s]+)        # Date this state was set
                 [\s]+
-                ( (?:svc:|lrc:) [^\s]+) # FMRI
+                ( (?: svc: | lrc: ) [^\s]+ ) # FMRI
                 \n?
                 $
-        /xms);
+        /xms
+        );
         if ($FMRI) {
-                close $svc_list;
+            close $svc_list;
             return ( $state, $date );
         }
     }
@@ -122,7 +131,7 @@ Create a new Service object. The parameter must be a valid, unique FMRI.
 =cut
 
 sub new {
-    $debug && carp('new ' . join(',', @_));
+    $debug && warn( 'new ' . join( ',', @_ ) );
     my $class   = shift;
     my $FMRI    = shift;
     my $service = bless {}, __PACKAGE__;
@@ -137,10 +146,11 @@ Get the current status of this service. Returns a string, 'disabled', 'enabled',
 =cut
 
 sub status {
-    $debug && carp('status ' . join(',', @_));
+    $debug && warn( 'status ' . join( ',', @_ ) );
     my $self = shift;
     my ( $status, $date ) = $self->_svcs();
-    $debug && carp(Data::Dumper->Dump([$status, $date], [qw($status $date)]));
+    $debug
+      && warn( Data::Dumper->Dump( [ $status, $date ], [qw($status $date)] ) );
     return $status;
 }
 
@@ -151,7 +161,7 @@ Returns the Fault Managed Resource Identifier for this service.
 =cut
 
 sub FMRI {
-    $debug && carp('FMRI ' . join(',', @_));
+    $debug && warn( 'FMRI ' . join( ',', @_ ) );
     my $self = shift;
     return $self->{FMRI};
 }
@@ -163,8 +173,8 @@ Returns all or some properties for this service.
 =cut
 
 sub properties {
-    $debug && carp('properties ' . join(',', @_));
-    my $self = shift;
+    $debug && warn( 'properties ' . join( ',', @_ ) );
+    my $self       = shift;
     my $properties = $self->_svcprop();
     return %{$properties};
 }
@@ -176,16 +186,18 @@ Returns the value of a single property of this service.
 =cut
 
 sub property {
-    $debug && carp('property ' . join(',', @_));
+    $debug && warn( 'property ' . join( ',', @_ ) );
     my $self = shift;
     my $p = validate_pos( @_, { type => SCALAR } );
-    
+    my ($property_name) = @{$p};
+
     my $properties = $self->_svcprop();
-    $debug && carp(Data::Dumper->Dump([$properties], [qw($properties)]));
-    if (defined $properties->{$p}) {
-        return $properties->{$p}{value};
+    $debug && warn( Data::Dumper->Dump( [$properties], [qw($properties)] ) );
+    if ( defined $properties->{$property_name} ) {
+        return $properties->{$property_name}{value};
     }
     else {
+        carp "Unable to find property '$property_name' for " . $self->{FMRI};
         return undef;
     }
 }
@@ -197,16 +209,18 @@ Returns the type of a single property of this service.
 =cut
 
 sub property_type {
-    $debug && carp('property_type ' . join(',', @_));
+    $debug && warn( 'property_type ' . join( ',', @_ ) );
     my $self = shift;
     my $p = validate_pos( @_, { type => SCALAR } );
-    
+    my ($property_name) = @{$p};
+
     my $properties = $self->_svcprop();
-    $debug && carp(Data::Dumper->Dump($properties));
-    if (defined $properties->{$p}) {
-        return $properties->{$p}{type};
+    $debug && warn( Data::Dumper->Dump([$properties], [qw($properties)]) );
+    if ( defined $properties->{$property_name} ) {
+        return $properties->{$property_name}{type};
     }
     else {
+        carp "Unable to find property '$property_name' for " . $self->{FMRI};
         return undef;
     }
 }

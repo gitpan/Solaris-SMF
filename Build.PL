@@ -11,7 +11,7 @@ my $builder = Module::Build->new(
         'Test::More' => 0,
     },
     requires => {
-        'Readonly' => 0,
+        'Params::Validate' => 0,
     },
     add_to_cleanup      => [ 'Solaris-SMF-*' ],
     create_makefile_pl => 'traditional',

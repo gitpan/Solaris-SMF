@@ -1,6 +1,6 @@
 ---
 name: Solaris-SMF
-version: 0.02
+version: 0.03
 author:
   - 'Brad Macpherson <brad@teched-creations.com>'
 abstract: Manipulate Solaris 10 services from Perl
@@ -8,13 +8,13 @@ license: perl
 resources:
   license: http://dev.perl.org/licenses/
 requires:
-  Readonly: 0
+  Params::Validate: 0
 build_requires:
   Test::More: 0
 provides:
   Solaris::SMF:
     file: lib/Solaris/SMF.pm
-    version: 0.02
+    version: 0.03
   Solaris::SMF::Service:
     file: lib/Solaris/SMF/Service.pm
     version: 0.02

@@ -1,5 +1,12 @@
 Revision history for Solaris-SMF
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+0.03	2 December 2009
+	Radically revised - it now does what it says on the tin! Unnecessary
+    dependencies removed as well.
+
+0.02	1 December 2009
+	Updated prerequisites to add 'Readonly' support.
+
+0.01    28 November 2009
+    First version, released on an unsuspecting world.
 
