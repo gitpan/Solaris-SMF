@@ -26,7 +26,7 @@ for my $service (@services) {
     # Check attributes of this service
     ok( $FMRI =~ m/(?:svc|lrc):/xms,
         "'$FMRI' does not match the pattern for FMRI" );
-    ok( $status =~ m/online|offline|enabled|disabled|inactive|legacy_run/xms,
+    ok( $status =~ m/online|offline|enabled|disabled|inactive|maintenance|legacy_run/xms,
         "'$FMRI' has unknown status '$status'" );
 
     my ($properties, $enabled_property, $enabled_proptype);
