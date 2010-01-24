@@ -9,6 +9,7 @@ META.yml
 README
 t/00-load.t
 t/01-get-services.t
+t/02-administer-services.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t

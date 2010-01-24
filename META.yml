@@ -1,6 +1,6 @@
 ---
 name: Solaris-SMF
-version: 0.03_01
+version: 0.04
 author:
   - 'Brad Macpherson <brad@teched-creations.com>'
 abstract: Manipulate Solaris 10 services from Perl
@@ -16,7 +16,7 @@ configure_requires:
 provides:
   Solaris::SMF:
     file: lib/Solaris/SMF.pm
-    version: 0.03_01
+    version: 0.04
   Solaris::SMF::Service:
     file: lib/Solaris/SMF/Service.pm
     version: 0.02

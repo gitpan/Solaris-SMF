@@ -100,28 +100,11 @@ sub _svcprop {
 sub _svcadm {
     $debug && warn( '_svcadm ' . join( ',', @_ ) );
     my $self = shift;
+    my $svcadm_action = shift;
     local $ENV{PATH} = '/bin:/usr/bin:/sbin:/usr/sbin';
-    open my $svc_list, '-|', " svcadm '$self->{FMRI}' 2>/dev/null"
-      or croak 'Unable to query SMF services';
-    while ( my $svc_line = <$svc_list> ) {
-        my ( $state, $date, $FMRI ) = (
-            $svc_line =~ m/
-                ^
-                ([^\s]+)        # Current state
-                [\s]+
-                ([^\s]+)        # Date this state was set
-                [\s]+
-                ( (?: svc: | lrc: ) [^\s]+ ) # FMRI
-                \n?
-                $
-        /xms
-        );
-        if ($FMRI) {
-            close $svc_list;
-            return ( $state, $date );
-        }
-    }
-    croak "Unable to determine status of $self->{FMRI}";
+    open my $svc_adm, '-|', " svcadm $svcadm_action '$self->{FMRI}' 2>&1"
+      or croak 'Unable to administer SMF services';
+    close $svc_adm;
 }
 
 =head2 new
@@ -223,6 +206,90 @@ sub property_type {
         carp "Unable to find property '$property_name' for " . $self->{FMRI};
         return undef;
     }
+}
+
+=head2 disable
+
+This instructs SMF to disable the service permanently. To disable temporarily,
+that is until the next time the server is rebooted, use the 'stop' method.
+
+=cut
+sub disable {
+    $debug && warn( 'disable ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('disable');
+}
+
+=head2 stop
+
+This instructs SMF to stop the service. It uses the -t flag to svcadm, so that
+using this call will not prevent the service from starting the next time the
+server reboots.
+
+=cut
+sub stop {
+    $debug && warn( 'stop ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('disable -t');
+}
+
+=head2 enable
+
+This instructs SMF to enable the service permanently. To enable temporarily,
+that is until the next time the server is rebooted, see the 'start' method.
+
+=cut
+sub enable {
+    $debug && warn( 'enable ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('enable');
+}
+
+=head2 start
+
+This instructs SMF to start the service. This change is not made persistent
+unless you use the 'enable' method.
+
+=cut
+sub start {
+    $debug && warn( 'start ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('enable -t');
+}
+
+=head2 refresh
+
+This instructs SMF to refresh the service. Needed whenever alterations are
+made to a service's properties. It acts as the analogue of a SQL 'commit'.
+
+=cut
+sub refresh {
+    $debug && warn( 'refresh ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('refresh');
+}
+
+=head2 clear
+
+This instructs SMF to clear the service's state, that is, to remove the
+'failed' marker from it. This is needed prior to starting a failed service.
+
+=cut
+sub clear {
+    $debug && warn( 'clear ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('clear');
+}
+
+=head2 mark
+
+This instructs SMF to mark the service as failed.
+
+=cut
+sub mark {
+    $debug && warn( 'mark ' . join( ',', @_ ) );
+    my $self = shift;
+    return $self->_svcadm('mark');
 }
 
 =head1 AUTHOR

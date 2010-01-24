@@ -22,11 +22,11 @@ Solaris::SMF - Manipulate Solaris 10 services from Perl
 
 =head1 VERSION
 
-Version 0.03_01
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03_01';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
